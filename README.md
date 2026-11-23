@@ -52,7 +52,7 @@ Any setup, check or hook step should end in the same state whether it runs once 
 
 ## Placeholders and environment
 Files use these placeholders; replace them for your install:
-- `<BRAIN_DIR>`: absolute path of your checkout (`templates/settings.json`, `hooks/settings-snippet.json`, docs).
+- `<BRAIN_DIR>`: absolute path of your checkout (`templates/settings.json`, docs).
 - `<OWNER>`: the non-root user that owns the repo (`rules/git.md`). Scripts read `BRAIN_OWNER`, default: owner of the brain dir.
 - `<REMOTE_URL>`: your brain repo's `origin`. `brain-check.sh` reads `BRAIN_REMOTE`; if unset it only warns about a missing origin.
 - `CLAUDE_BRAIN` / `CLAUDE_BRAIN_DIR`: override the brain path; default is the repo containing the script.

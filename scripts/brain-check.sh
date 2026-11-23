@@ -44,5 +44,8 @@ for f in CLAUDE.md rules/*.md instructions/*.md agents/*.md; do
 for f in agents/*.md; do
   m=$(sed -n 's/^model: *//p' "$f" | head -1)
   case "$m" in haiku|sonnet|opus) ;; *) echo "brain-check: WARN $f has invalid model '$m'";; esac; done
-[ -x hooks/commit-msg ] || echo "brain-check: WARN hooks/commit-msg missing or not executable"
+for f in hooks/* scripts/*; do
+  case "$f" in *.md|*.json) continue;; esac
+  [ -x "$f" ] || echo "brain-check: WARN $f not executable; run scripts/install.sh"; done
+python3 scripts/merge_settings.py --check --brain "$BRAIN" | grep -v '^no changes$' | sed 's/^/brain-check: WARN /'
 echo "brain-check: ok ($BRAIN @ $(git rev-parse --short HEAD))"

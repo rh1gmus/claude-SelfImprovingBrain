@@ -32,7 +32,36 @@
   },
   "hooks": {
     "SessionStart": [
-      { "hooks": [ { "type": "command", "command": "bash <BRAIN_DIR>/scripts/brain-check.sh" } ] }
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash <BRAIN_DIR>/scripts/brain-check.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CLAUDE_BRAIN_DIR=<BRAIN_DIR> python3 \"<BRAIN_DIR>/hooks/capture.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CLAUDE_BRAIN_DIR=<BRAIN_DIR> python3 \"<BRAIN_DIR>/hooks/capture.py\"",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }

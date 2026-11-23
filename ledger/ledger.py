@@ -77,6 +77,9 @@ def existing_events():
 
 def append(obj, dry):
     line = json.dumps(obj, ensure_ascii=False, sort_keys=False)
+    key = lambda e: (e.get("session_id"), e.get("rule_id"), e.get("kind"), e.get("evidence"))
+    if any(key(e) == key(obj) for e in existing_events()):
+        raise Reject("identical event already recorded", 3)
     if dry:
         print(f"DRY-RUN would append to events.jsonl: {line}")
         return

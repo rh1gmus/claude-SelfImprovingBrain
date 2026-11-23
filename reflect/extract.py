@@ -170,6 +170,9 @@ def main():
                   f"recorded (use /reflect --dry-run, reviewed by the maintainer)", file=sys.stderr)
             return 3
         pend = cand_dir / f"{a.commit}.offsets.json"
+        if not pend.exists() and (cand_dir / f"{a.commit}.offsets.done").exists():
+            print(f"run {a.commit} already committed; nothing to do")
+            return 0
         if not pend.exists():
             print(f"no pending offsets for run {a.commit}", file=sys.stderr)
             return 2
@@ -180,6 +183,7 @@ def main():
         tmp.write_text(json.dumps(processed, indent=1))
         tmp.replace(processed_p)
         pend.rename(pend.with_suffix(".done"))
+        (cand_dir / f"{a.commit}.jsonl").unlink(missing_ok=True)  # scratch, not needed once committed
         print(f"committed offsets for {a.commit} ({len(processed)} sessions tracked)")
         return 0
 
