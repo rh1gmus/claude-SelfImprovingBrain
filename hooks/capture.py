@@ -83,6 +83,16 @@ def main() -> None:
     }
 
     STATE.mkdir(parents=True, exist_ok=True)
+    # Idempotence: a repeat of the same (session, event, transcript) as the last
+    # queued line adds nothing (hook retries, double fires).
+    try:
+        last = QUEUE.read_text(encoding="utf-8").rstrip("\n").rsplit("\n", 1)[-1] if QUEUE.exists() else ""
+        prev = json.loads(last) if last else {}
+        if (prev.get("session_id"), prev.get("event"), prev.get("transcript_path")) == \
+                (entry["session_id"], entry["event"], entry["transcript_path"]):
+            return
+    except (OSError, ValueError, AttributeError):
+        pass
     # One short line per write; appends this small are effectively atomic,
     # so concurrent sessions won't interleave.
     with QUEUE.open("a", encoding="utf-8") as f:

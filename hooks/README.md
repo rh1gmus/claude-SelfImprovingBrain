@@ -11,7 +11,7 @@ Queues every session transcript for the phase 3 `/reflect` batch pass. No scorin
 - **Brain path:** `$CLAUDE_BRAIN_DIR`, else the repo containing `capture.py`.
 
 ## Install
-Merge `settings-snippet.json` into user-level `~/.claude/settings.json` (append to existing `SessionEnd`/`PreCompact` arrays). Per machine, set the interpreter (`python3`, `python` or `py -3`) and brain path. The SessionEnd default timeout is 1.5 s, so keep `timeout: 10`.
+Run `scripts/install.sh`: it merges the `SessionEnd`/`PreCompact` entries from `templates/settings.json` into `~/.claude/settings.json` without duplicates. Per machine, adjust the interpreter (`python3`, `python` or `py -3`) in the template if needed. The SessionEnd default timeout is 1.5 s, so keep `timeout: 10`.
 
 ## Disable
 Remove the `SessionEnd` and `PreCompact` entries that call `capture.py` from `~/.claude/settings.json`.

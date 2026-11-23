@@ -32,27 +32,29 @@ Claude Code loads `CLAUDE.md` files every session. This project keeps one shared
 python3 ledger/lint.py                  # IDs in rules.csv match IDs inline; events.jsonl parses
 python3 -m unittest reflect.test_reflect  # extractor, offsets, ledger validation (synthetic fixtures only)
 bash -n scripts/*.sh                    # syntax check
+bash scripts/test_idempotent.sh         # each setup/hook step run twice in a scratch HOME
 ```
-Planned: `scripts/test_idempotent.sh`, which runs each setup step twice in a scratch `HOME` and diffs a snapshot of the file tree, git status, settings JSON and queue length. A passing test must also fail when a guard is deliberately removed.
+`bash scripts/test_idempotent.sh` runs each setup step twice in a scratch `HOME` and diffs a snapshot of the file tree, git status, settings JSON and queue length. A passing test must also fail when a guard is deliberately removed.
 
 ## Idempotence goal
 Any setup, check or hook step should end in the same state whether it runs once or many times. Audit findings and the plan:
 
 | Gap | Status |
 |---|---|
-| `capture.py` defaulted to a non-existent `~/.claude_brain` | fixed: defaults to the repo containing the script |
-| `brain-check.sh` hardcoded the brain path for `chown`/re-exec | fixed: derived from script location or `CLAUDE_BRAIN` |
-| Settings merge is manual; no drift check | planned: `install.sh` plus a drift warning |
-| Exec bits only set on first init | planned |
-| Dangling agent symlinks never pruned | planned |
-| Reflect `--commit` / ledger append not proven repeat-safe | planned: markers and event keys |
+| `capture.py` defaulted to a non-existent `~/.claude_brain` | done: defaults to the repo containing the script |
+| `brain-check.sh` hardcoded the brain path for `chown`/re-exec | done: derived from script location or `CLAUDE_BRAIN` |
+| Settings merge manual, no drift check | done: `scripts/install.sh` + `merge_settings.py`; `brain-check.sh` warns on drift |
+| Exec bits only set on first init | done: `install.sh` sets them, `brain-check.sh` warns |
+| Dangling agent symlinks never pruned | done: `link-project.sh` prunes them |
+| Queue duplicates from hook retries | done: `capture.py` skips a repeat of the last line |
+| Reflect `--commit` / ledger append not repeat-safe | done: repeat commit is a no-op; identical events are rejected |
 
 ## Roadmap
-- Add `scripts/install.sh` and `scripts/test_idempotent.sh`.
+- Make `bgit` and the `brain/<slug>` branch workflow optional for single-user installs.
 
 ## Placeholders and environment
 Files use these placeholders; replace them for your install:
-- `<BRAIN_DIR>`: absolute path of your checkout (`templates/settings.json`, `hooks/settings-snippet.json`, docs).
+- `<BRAIN_DIR>`: absolute path of your checkout (`templates/settings.json`, docs).
 - `<OWNER>`: the non-root user that owns the repo (`rules/git.md`). Scripts read `BRAIN_OWNER`, default: owner of the brain dir.
 - `<REMOTE_URL>`: your brain repo's `origin`. `brain-check.sh` reads `BRAIN_REMOTE`; if unset it only warns about a missing origin.
 - `CLAUDE_BRAIN` / `CLAUDE_BRAIN_DIR`: override the brain path; default is the repo containing the script.

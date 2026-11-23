@@ -127,6 +127,16 @@ class ExtractTests(unittest.TestCase):
             r = self.extract()
             self.assertEqual(self.extract("--mark-dry", self.run_id(r)).returncode, 0)
 
+    def test_repeat_commit_is_noop_and_removes_candidates(self):
+        r = self.extract()
+        rid = self.run_id(r)
+        self.mark_two_dry()
+        self.assertEqual(self.extract("--commit", rid).returncode, 0)
+        before = (self.d / "state" / "processed.json").read_text()
+        self.assertEqual(self.extract("--commit", rid).returncode, 0)  # repeat: nothing to do
+        self.assertEqual((self.d / "state" / "processed.json").read_text(), before)
+        self.assertFalse((self.d / "state" / "candidates" / f"{rid}.jsonl").exists())
+
     def test_commit_unknown_run_fails(self):
         self.mark_two_dry()
         self.assertEqual(self.extract("--commit", "nope").returncode, 2)
@@ -194,6 +204,13 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(self.ev(kind="applicable").returncode, 3)
         self.assertEqual(self.ev(kind="applicable", session="sess-bbbb").returncode, 0)
         self.assertEqual(len(self.events()), 2)
+
+    def test_identical_event_rejected_for_every_kind(self):
+        for kind in ("recurrence", "revised", "applicable"):
+            self.assertEqual(self.ev(kind=kind).returncode, 0, kind)
+            self.assertEqual(self.ev(kind=kind).returncode, 3, kind)
+        self.assertEqual(self.ev(kind="recurrence", evidence="a different note").returncode, 0)
+        self.assertEqual(len(self.events()), 4)
 
     def test_note_counts_distinct_sessions(self):
         n = lambda s, t="repeat the same fix": self.led("note", "--session", s, "--key", "same-fix", "--text", t)
