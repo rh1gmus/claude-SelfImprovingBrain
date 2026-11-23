@@ -1,0 +1,38 @@
+{
+  "model": "sonnet",
+  "effortLevel": "medium",
+  "permissions": {
+    "ask": [
+      "Edit(/<BRAIN_DIR>/rules/**)",
+      "Edit(/<BRAIN_DIR>/hooks/**)",
+      "Edit(/<BRAIN_DIR>/scripts/**)",
+      "Edit(/<BRAIN_DIR>/templates/**)",
+      "Edit(/<BRAIN_DIR>/CLAUDE.md)",
+      "Write(/<BRAIN_DIR>/CLAUDE.md)",
+      "Write(/<BRAIN_DIR>/hooks/**)",
+      "Write(/<BRAIN_DIR>/rules/**)",
+      "Write(/<BRAIN_DIR>/scripts/**)",
+      "Write(/<BRAIN_DIR>/templates/**)"
+    ],
+    "deny": [
+      "Bash(sed -i*<BRAIN_DIR>/rules/*)",
+      "Bash(sed -i*<BRAIN_DIR>/hooks/*)",
+      "Bash(sed -i*<BRAIN_DIR>/scripts/*)",
+      "Bash(sed -i*<BRAIN_DIR>/templates/*)",
+      "Bash(*> <BRAIN_DIR>/rules/*)",
+      "Bash(*> <BRAIN_DIR>/hooks/*)",
+      "Bash(*> <BRAIN_DIR>/scripts/*)",
+      "Bash(*tee*<BRAIN_DIR>/rules/*)",
+      "Bash(git commit --no-verify:*)",
+      "Bash(git commit -n:*)",
+      "Bash(git config core.hooksPath:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": "bash <BRAIN_DIR>/scripts/brain-check.sh" } ] }
+    ]
+  }
+}

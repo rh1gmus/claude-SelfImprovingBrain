@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Enforces rules/git.md commit format and the rules approval trailer.
+msg_file="$1"
+msg=$(grep -v '^#' "$msg_file")
+subject=$(printf '%s\n' "$msg" | head -n1)
+fail() { echo "commit-msg: $1" >&2; exit 1; }
+
+areas='rules|instructions|agents|hooks|scripts|templates|docs'
+[[ "$subject" =~ ^($areas):\ (.+)$ ]] || fail "subject must be '<area>: <what changed>' (area: ${areas//|/, })"
+desc="${BASH_REMATCH[2]}"
+[ "$(wc -w <<<"$desc")" -ge 4 ] || fail "subject description too short; say what changed (at least 4 words)"
+shopt -s nocasematch
+[[ "$desc" =~ ^(update|updates|fix|fixes|changes|misc|wip|tweak)s?\.?$ ]] && fail "vague subject"
+shopt -u nocasematch
+grep -qE '^Why: .{5,}' <<<"$msg" || fail "missing 'Why: <reason>' line"
+grep -qE '^Trigger: .{5,}' <<<"$msg" || fail "missing 'Trigger: <what prompted it>' line"
+
+# Any protected path staged? Require an approval trailer.
+protected=$(git diff --cached --name-only | grep -E '^(rules/|hooks/|scripts/|templates/|ledger/|reflect/|skills/|CLAUDE\.md$)')
+if [ -n "$protected" ] && [ -n "$(git rev-parse --verify -q HEAD)" ]; then
+  grep -qE '^Rules-Approved-By: .+' <<<"$msg" || fail "protected files changed ($protected); need 'Rules-Approved-By: <maintainer> (<date>)' trailer after explicit human approval"
+fi
+exit 0

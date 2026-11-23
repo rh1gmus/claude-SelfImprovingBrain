@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Run git on claude_brain as its owner, even from a root Claude Code session.
+# Usage: <brain>/scripts/bgit <git args>
+# Env: CLAUDE_BRAIN (default: repo containing this script), BRAIN_OWNER (default: owner of the brain dir).
+BRAIN="${CLAUDE_BRAIN:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+OWNER="${BRAIN_OWNER:-$(stat -c %U "$BRAIN")}"
+case " $* " in
+  *" --no-verify "*|*" commit -n "*|*" push -f "*|*" --force"*|*"core.hooksPath"*)
+    echo "bgit: refused (see rules/git.md)" >&2; exit 1;;
+esac
+run() { if [ "$(id -u)" = 0 ]; then sudo -u "$OWNER" -H git -C "$BRAIN" "$@"; else git -C "$BRAIN" "$@"; fi; }
+if [ "$1" = push ]; then
+  case " $* " in *" main "*|*":main "*) echo "bgit: refused: push a brain/<slug> branch; the maintainer merges (rules/git.md)" >&2; exit 1;; esac
+  [ "$(run symbolic-ref --short -q HEAD)" = main ] && { echo "bgit: refused: on main; run 'bgit switch -c brain/<slug>' first" >&2; exit 1; }
+fi
+if [ "$(id -u)" = 0 ]; then
+  chown -R "$OWNER": "$BRAIN"     # files root's session created stay usable by the owner
+  exec sudo -u "$OWNER" -H git -C "$BRAIN" "$@"
+fi
+exec git -C "$BRAIN" "$@"

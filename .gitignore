@@ -1,0 +1,5 @@
+*.local.md
+.DS_Store
+phase*questions.md
+state/
+__pycache__/
